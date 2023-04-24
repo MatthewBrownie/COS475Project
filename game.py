@@ -4,8 +4,8 @@ import random
 import pygame as pg
 
 # drawing parameters
-canvas_x = 768
-canvas_y = 1024
+canvas_x = 600
+canvas_y = 800
 bird_size = 30
 bird_color = "yellow"
 pipe_color = (0, 150, 0, 150)
@@ -15,12 +15,12 @@ gravity = 0.5
 jump_force = 10
 terminal_vel = 50
 pipe_width = 100
-pipe_gap = 200
-pipe_spacing = 300
-pipe_speed = 1
+pipe_gap = 180
+pipe_spacing = 100
+pipe_speed = 3
 
 # init stuff
-bird_pos = pg.Vector2(canvas_x / 3, canvas_y / 2)
+bird_pos = pg.Vector2(canvas_x / 5, canvas_y / 2)
 bird_vel = pg.Vector2(0, 0)
 pipes = []
 
@@ -51,15 +51,21 @@ while running:
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("pink")
     # Pipes
-    if count % pipe_spacing == 0:
+    if count % round((pipe_spacing + pipe_width) / pipe_speed, 0) == 0:
         pipes.append(create_pipe(count))
 
+    if pipes[0][0] - pipe_speed <= -pipe_width:
+        pipes.pop(0)
+
     for i, (x, gap) in enumerate(pipes):
+        # shift all pipes
         pipes[i] = (x - pipe_speed, gap)
-        # top pipe
-        pg.draw.rect(screen, pipe_color, pg.Rect(x, 0, pipe_width, gap - pipe_gap))
-        # bottom pipe
-        pg.draw.rect(screen, pipe_color, pg.Rect(x, gap, pipe_width, 10000))
+
+        top_pipe = pg.Rect(x, 0, pipe_width, gap - pipe_gap)
+        bottom_pipe = pg.Rect(x, gap, pipe_width, 10000)
+
+        pg.draw.rect(screen, pipe_color, top_pipe)
+        pg.draw.rect(screen, pipe_color, bottom_pipe)
 
     # Bird
     pg.draw.circle(screen, bird_color, bird_pos, bird_size)
