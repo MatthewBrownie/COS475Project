@@ -34,22 +34,24 @@ def run(config_file):
 
     p = neat.Population(config)
 
-    # Add a stdout reporter to show progress in the terminal.
-    p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
+    while True:
+        gen = int(input("How many generations: "))
+        # Add a stdout reporter to show progress in the terminal.
+        p.add_reporter(neat.StdOutReporter(True))
+        stats = neat.StatisticsReporter()
+        p.add_reporter(stats)
 
-    # Run for up to 300 generations.
-    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
-    winner = p.run(pe.evaluate, 500)
+        # Run for up to 300 generations.
+        pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
+        winner = p.run(pe.evaluate, gen)
 
-    # Display the winning genome.
-    print(f"\nBest genome:\n{winner}")
+        # Display the winning genome.
+        print(f"\nBest genome:\n{winner}")
 
-    # Show most fit genome playing flappy bird!
-    winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
-    flap.run_instance(net=winner_net, draw=True, ticks_per_frame=2)
-
+        # Show most fit genome playing flappy bird!
+        winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+        b = flap.run_instance(net=winner_net, ticks_per_frame=3, draw=False, print_score=True)
+    
 
 if __name__ == "__main__":
     run("config_flappy")

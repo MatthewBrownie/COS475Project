@@ -55,6 +55,7 @@ def reset():
     score = 0
     pipes = []
     pipe_id = 1
+    print("GAME OVER\n\n")
     pause()
 
 
@@ -99,6 +100,8 @@ while running:
     if first_pipe[0] <= bird_pos.x:
         if score != first_pipe[2]:
             score = first_pipe[2]
+            if score % 2 == 0 and score != 0:
+                PIPE_SPEED += .3
             print(f"Score: {score}")
     if first_pipe[0] - PIPE_SPEED <= -PIPE_WIDTH:
         pipes.pop(0)

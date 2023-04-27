@@ -4,6 +4,8 @@ from collections import deque
 
 import pygame as pg
 
+random.seed(0)
+
 # sim parameters
 WORLD_X = 600
 WORLD_Y = 800
@@ -44,7 +46,7 @@ def pause(clock):
         clock.tick(30)
 
 
-def run_instance(net=None, draw=False, ticks_per_frame=1):
+def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, human=False):
     bird_pos = BIRD_START.copy()
     bird_vel = 0
     pipe_speed = PIPE_SPEED
@@ -73,7 +75,7 @@ def run_instance(net=None, draw=False, ticks_per_frame=1):
         # make new pipes
         if pipe_timer >= (PIPE_SPACING + PIPE_WIDTH) // pipe_speed:
             x = WORLD_X + PIPE_WIDTH
-            gap = random.randint(0 + PIPE_GAP, WORLD_Y - PIPE_GAP)
+            gap = random.randint(50 + PIPE_GAP, (WORLD_Y - 50) - PIPE_GAP)
             pipe = [x, gap]
             real_pipes.append(pipe)
             pipe_timer = 0
@@ -131,7 +133,7 @@ def run_instance(net=None, draw=False, ticks_per_frame=1):
                 if event.type == pg.QUIT:
                     pg.quit()
                     quit()
-                elif event.type == pg.KEYDOWN:
+                elif event.type == pg.KEYDOWN and human:
                     if event.key == pg.K_SPACE:
                         bird_vel = JUMP_FORCE
                     elif event.key == pg.K_p:
@@ -149,6 +151,10 @@ def run_instance(net=None, draw=False, ticks_per_frame=1):
                 clock.tick(60)
 
             if game_over:
+                if print_score and not human:
+                    print("score:", dist_traveled / (PIPE_WIDTH + PIPE_GAP))
+                    pg.quit()
+                    quit()
                 pg.time.wait(250)
                 bird_pos = BIRD_START.copy()
                 bird_vel = 0
@@ -164,4 +170,9 @@ def run_instance(net=None, draw=False, ticks_per_frame=1):
                     bird_vel = JUMP_FORCE
 
         elif game_over:
+            if print_score:
+                print("score:", dist_traveled / (PIPE_WIDTH + PIPE_GAP))
             return dist_traveled / (PIPE_WIDTH + PIPE_GAP)
+        
+    if print_score:
+        print("score:", dist_traveled / (PIPE_WIDTH + PIPE_GAP))
