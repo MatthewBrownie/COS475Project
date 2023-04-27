@@ -47,6 +47,16 @@ def pause(clock):
 
 
 def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, human=False):
+    # net: the network playing the game
+    # draw: whether the game is "played" or just simulated
+    # ticks_per_frame: how fast the game is played
+    # print_score: whether the score is printed after the game is played
+    # human: a param to let humans play
+
+    if human: 
+        draw = True
+        print_score = True
+
     bird_pos = BIRD_START.copy()
     bird_vel = 0
     pipe_speed = PIPE_SPEED
@@ -173,6 +183,3 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
             if print_score:
                 print("score:", dist_traveled / (PIPE_WIDTH + PIPE_GAP))
             return dist_traveled / (PIPE_WIDTH + PIPE_GAP)
-        
-    if print_score:
-        print("score:", dist_traveled / (PIPE_WIDTH + PIPE_GAP))

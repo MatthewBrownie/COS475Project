@@ -1,4 +1,4 @@
-#--- parameters for the XOR-2 experiment ---#
+#--- parameters for the flappy bird experiment ---#
 
 [NEAT]
 fitness_criterion     = max
