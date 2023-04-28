@@ -161,7 +161,7 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
                 clock.tick(60)
 
             if game_over:
-                if print_score and not human:
+                if print_score:
                     print("score:", dist_traveled / (PIPE_WIDTH + PIPE_GAP))
                     pg.quit()
                     quit()

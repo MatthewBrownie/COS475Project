@@ -35,6 +35,7 @@ def run(config_file):
     )
 
     p = neat.Population(config)
+    i = 0
 
     while True:
         gen = int(input("How many generations: "))
@@ -54,6 +55,9 @@ def run(config_file):
         winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
 
         # draw it or allow it to keep going
+        if i == 0:
+            print("NOTE: Drawing will end the current population")
+            i+=1
         a = input("Draw? Y/N\n")
         if a == "Y":
             b = flap.run_instance(net=winner_net, ticks_per_frame=3, draw=True, print_score=True)
