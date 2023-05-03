@@ -198,15 +198,15 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
 
             if game_over:
                 if print_score:
-                    print("score:", dist_traveled)
+                    print("score:", dist_traveled / 200)
                     pg.quit()
                     quit()
         
         elif game_over:
             if print_score:
-                print("dino score:", dist_traveled)
-            return dist_traveled
+                print("dino score:", dist_traveled / 200)
+            return dist_traveled / 200
     
 
-if __name__ == "__main__":
-    run_instance(human=True)
+# if __name__ == "__main__":
+#     run_instance(human=True)

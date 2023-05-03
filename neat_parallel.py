@@ -89,7 +89,7 @@ def run_flap(config_file):
         else:
             b = flap.run_instance(net=winner_net, ticks_per_frame=3, draw=False, print_score=True)
 
-def run_flap_data(config_file):
+def run_flap_data(config_file, gen):
     # function to do 30 runs to aggregate generation data
 
     config = neat.Config(
@@ -100,7 +100,6 @@ def run_flap_data(config_file):
         config_file,
     )
 
-    gen = int(input("How many generations: "))
     j = 0
     data = []
     while j < 30:
@@ -140,7 +139,7 @@ def run_flap_data(config_file):
         write = csv.writer(file)
         write.writerows(data)
 
-def run_dino_data(config_file):
+def run_dino_data(config_file, gen):
     # function to do 30 runs to aggregate generation data
 
     config = neat.Config(
@@ -151,7 +150,6 @@ def run_dino_data(config_file):
         config_file,
     )
 
-    gen = int(input("How many generations: "))
     j = 0
     data = []
     while j < 30:
@@ -235,7 +233,6 @@ def run_both(config_file):
     p = neat.Population(config)
 
     while True:
-        gen = int(input("How many generations: "))
         # Add a stdout reporter to show progress in the terminal.
         p.add_reporter(neat.StdOutReporter(True))
         stats = neat.StatisticsReporter()
@@ -271,5 +268,4 @@ def run_both(config_file):
         d = dino.run_instance(net=winner_net, ticks_per_frame=3, draw=True, print_score=True)
 
 if __name__ == "__main__":
-    run_flap_data("config_default")
-    run_dino_data("config_default")
+    run_dino("config_default")
