@@ -4,6 +4,7 @@ import os
 import neat
 
 import flappy as flap
+import dino
 
 import csv
 
@@ -18,12 +19,12 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 # outputs:
 # 1. jump if >= 0.5
 
-<<<<<<< Updated upstream
+def eval_genome_dino(genome, config):
+    test = neat.nn.FeedForwardNetwork.create(genome, config)
+    score = dino.run_instance(net=test)
+    return score
 
-def eval_genome(genome, config):
-=======
 def eval_genome_flap(genome, config):
->>>>>>> Stashed changes
     test = neat.nn.FeedForwardNetwork.create(genome, config)
     score = flap.run_instance(net=test)
     return score
@@ -41,8 +42,6 @@ def run(config_file):
     p = neat.Population(config)
     i = 0
 
-<<<<<<< Updated upstream
-=======
 # Main function for NEAT
 # Inputs:
 #   game: one of {"flappy", "dino"} to use that game
@@ -63,7 +62,6 @@ def run_flap(config_file):
     p = neat.Population(config)
     i = 0
 
->>>>>>> Stashed changes
     while True:
         gen = int(input("How many generations: "))
         # Add a stdout reporter to show progress in the terminal.
@@ -72,11 +70,7 @@ def run_flap(config_file):
         p.add_reporter(stats)
 
         # Run for up to 300 generations.
-<<<<<<< Updated upstream
-        pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
-=======
         pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome_flap)
->>>>>>> Stashed changes
         winner = p.run(pe.evaluate, gen)
 
         # Display the winning genome.
@@ -95,11 +89,7 @@ def run_flap(config_file):
         else:
             b = flap.run_instance(net=winner_net, ticks_per_frame=3, draw=False, print_score=True)
 
-<<<<<<< Updated upstream
-def run_data(config_file):
-=======
 def run_flap_data(config_file):
->>>>>>> Stashed changes
     # function to do 30 runs to aggregate generation data
 
     config = neat.Config(
@@ -121,40 +111,6 @@ def run_flap_data(config_file):
             p.add_reporter(neat.StdOutReporter(False))
             stats = neat.StatisticsReporter()
             p.add_reporter(stats)
-<<<<<<< Updated upstream
-
-            # Run for up to 300 generations.
-            pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
-            winner = p.run(pe.evaluate, 1)
-
-            # Display the winning genome.
-            print(f"\nBest genome:\n{winner}")
-
-            # Show most fit genome playing flappy bird!
-            winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
-            b = flap.run_instance(net=winner_net, ticks_per_frame=3, draw=False, print_score=True)
-            if j == 0:
-                data.append([i, b])
-            else:
-                data[i][1] += b
-            i += 1
-        j+=1
-
-    for i in data:
-        i[1] = i[1]/30
-
-    # opening the csv file in 'w+' mode
-    file = open('data.csv', 'w+', newline ='')
-    
-    # writing the data into the file
-    with file:
-        write = csv.writer(file)
-        write.writerows(data)
-    
-
-if __name__ == "__main__":
-    run("config_flappy")
-=======
 
             # Run for up to 300 generations.
             pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome_flap)
@@ -317,4 +273,3 @@ def run_both(config_file):
 if __name__ == "__main__":
     run_flap_data("config_default")
     run_dino_data("config_default")
->>>>>>> Stashed changes

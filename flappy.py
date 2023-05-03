@@ -131,9 +131,6 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
         # 4: distance traveled
         # network output: sigmoid function to jump
         if net is not None:
-<<<<<<< Updated upstream
-            if net.activate([p_x - b_x, bird_vel, p_y - b_y, dist_traveled])[0] >= 0.5:
-=======
             inputs = [p_x - b_x, 
                       bird_vel, 
                       p_y - b_y, 
@@ -145,7 +142,6 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
                       0]
 
             if net.activate(inputs)[0] >= 0.5:
->>>>>>> Stashed changes
                 bird_vel = JUMP_FORCE
 
         # find collision
@@ -200,10 +196,5 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
 
         elif game_over:
             if print_score:
-<<<<<<< Updated upstream
-                print("score:", dist_traveled / (PIPE_WIDTH + PIPE_GAP))
-            return dist_traveled / (PIPE_WIDTH + PIPE_GAP)
-=======
                 print("flappy score:", dist_traveled / (PIPE_WIDTH + PIPE_GAP))
             return dist_traveled / (PIPE_WIDTH + PIPE_GAP)
->>>>>>> Stashed changes
