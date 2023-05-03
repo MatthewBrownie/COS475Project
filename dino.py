@@ -130,7 +130,7 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
         # 4: distance traveled
         # network output: sigmoid function to jump
         if net is not None:
-            if net.activate([p_x - b_x, bird_vel, p_y - b_y, dist_traveled])[0] >= 0.5:
+            if net.activate([p_x - b_x, bird_vel, p_y - b_y, dist_traveled])[0] >= 0.5 and bird_pos[1] >= BIRD_START[1] - 3:
                 bird_vel = JUMP_FORCE
 
         # find collision
@@ -148,7 +148,7 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
                 elif event.type == pg.KEYDOWN and human:
                     if event.key == pg.K_SPACE and bird_pos[1] >= BIRD_START[1] - 5:
                         bird_vel = JUMP_FORCE
-                    elif event.key == pg.K_p:
+                    elif event.key == pg.K_p and bird_pos[1] >= BIRD_START[1] - 5:
                         if pause(clock):
                             bird_vel = JUMP_FORCE
             if tick % ticks_per_frame == 0:
@@ -185,5 +185,5 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
             return dist_traveled / obstacle_width
         
 
-if __name__ == "__main__":
-    run_instance(human=True)
+# if __name__ == "__main__":
+#     run_instance(human=True)
