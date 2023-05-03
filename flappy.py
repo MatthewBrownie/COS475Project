@@ -12,9 +12,9 @@ WORLD_Y = 800
 
 # game parameters
 GRAVITY = 0.6
-JUMP_FORCE = -10
+JUMP_FORCE = -12
 TERMINAL_VEL = 60
-BIRD_BB = 25
+BIRD_SIZE = 27
 BIRD_START = [2 * WORLD_X / 5, WORLD_Y / 2]
 
 # pipe parameters
@@ -25,7 +25,6 @@ PIPE_SPEED = 5
 PIPE_SPEED_INC = 0.1
 
 # drawing parameters
-BIRD_SIZE = 27
 BIRD_COLOR = "yellow"
 PIPE_COLOR = (18, 122, 23)
 BACKGROUND_COLOR = (156, 195, 217)
@@ -46,16 +45,11 @@ def pause(clock):
         clock.tick(30)
 
 
-def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, human=False):
+def run_instance(net=None, draw=False, ticks_per_frame=1):
     # net: the network playing the game
     # draw: whether the game is "played" or just simulated
     # ticks_per_frame: how fast the game is played
     # print_score: whether the score is printed after the game is played
-    # human: a param to let humans play
-
-    if human: 
-        draw = True
-        print_score = True
 
     bird_pos = BIRD_START.copy()
     bird_vel = 0
@@ -79,7 +73,7 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
                 bird_vel = JUMP_FORCE
 
     while True:
-        if dist_traveled >= 100000:
+        if dist_traveled >= 1000000:
             game_over = True
         # --- Pipes ---
         # make new pipes
@@ -107,7 +101,7 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
         first = real_pipes[0]
 
         # if pipe can no longer touch bird, move to fake pipes
-        if first[0] + PIPE_WIDTH + BIRD_BB < bird_pos[0]:
+        if first[0] + PIPE_WIDTH + BIRD_SIZE < bird_pos[0]:
             fake_pipes.append(real_pipes.popleft())
 
         # get rid of old offscreen pipes
@@ -126,15 +120,16 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
         # 4: distance traveled
         # network output: sigmoid function to jump
         if net is not None:
-            if net.activate([p_x - b_x, bird_vel, p_y - b_y, dist_traveled])[0] >= 0.5:
+            inputs = [p_x - b_x, bird_vel, p_y - b_y, dist_traveled]
+            if net.activate(inputs)[0] >= 0.5:
                 bird_vel = JUMP_FORCE
 
         # find collision
-        if b_y + BIRD_BB >= WORLD_Y:
+        if b_y + BIRD_SIZE >= WORLD_Y:
             game_over = True
-        elif b_x + BIRD_BB >= p_x:
-            if b_x - BIRD_BB <= p_x + PIPE_WIDTH:
-                if (b_y - BIRD_BB <= p_y - PIPE_GAP) or (b_y + BIRD_BB >= p_y):
+        elif b_x + BIRD_SIZE >= p_x:
+            if b_x - BIRD_SIZE <= p_x + PIPE_WIDTH:
+                if (b_y - BIRD_SIZE <= p_y - PIPE_GAP) or (b_y + BIRD_SIZE >= p_y):
                     game_over = True
 
         if draw:
@@ -143,7 +138,7 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
                 if event.type == pg.QUIT:
                     pg.quit()
                     quit()
-                elif event.type == pg.KEYDOWN and human:
+                elif event.type == pg.KEYDOWN:
                     if event.key == pg.K_SPACE:
                         bird_vel = JUMP_FORCE
                     elif event.key == pg.K_p:
@@ -160,26 +155,10 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
                 pg.display.flip()
                 clock.tick(60)
 
-            if game_over:
-                if print_score:
-                    print("score:", dist_traveled / (PIPE_WIDTH + PIPE_GAP))
-                    pg.quit()
-                    quit()
-                pg.time.wait(250)
-                bird_pos = BIRD_START.copy()
-                bird_vel = 0
-                real_pipes = deque([])
-                fake_pipes = deque([])
-                pipe_timer = float("inf")
-                pipe_speed = 3
-                dist_traveled = 0
-                game_over = False
-                screen.fill(BACKGROUND_COLOR)
-                pg.draw.circle(screen, BIRD_COLOR, BIRD_START, BIRD_SIZE)
-                if pause(clock):
-                    bird_vel = JUMP_FORCE
+        if game_over:
+            pg.quit()
+            return dist_traveled
 
-        elif game_over:
-            if print_score:
-                print("score:", dist_traveled / (PIPE_WIDTH + PIPE_GAP))
-            return dist_traveled / (PIPE_WIDTH + PIPE_GAP)
+
+if __name__ == "__main__":
+    run_instance(draw=True)

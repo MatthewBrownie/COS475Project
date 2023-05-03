@@ -11,8 +11,8 @@ WORLD_X = 1000
 WORLD_Y = 200
 
 # drawing parameters
-BIRD_SIZE = 20
-BIRD_COLOR = (99, 99, 99)
+DINO_SIZE = 20
+DINO_COLOR = (99, 99, 99)
 PIPE_COLOR = (71, 71, 71)
 BACKGROUND_COLOR = (224, 224, 224)
 
@@ -20,13 +20,13 @@ BACKGROUND_COLOR = (224, 224, 224)
 GRAVITY = 0.4
 JUMP_FORCE = -10
 TERMINAL_VEL = 60
-BIRD_BB = 25
-GROUND = WORLD_Y - 10
-BIRD_START = [20, GROUND - BIRD_SIZE]
+DINO_START = [DINO_SIZE + 20, WORLD_Y - DINO_SIZE]
 
 # pipe parameters
 PIPE_SPEED = 5
 PIPE_SPEED_INC = 0.1
+PIPE_WIDTH = (20, 60)
+PIPE_HEIGHT = (20, 60)
 
 
 def pause(clock):
@@ -44,19 +44,15 @@ def pause(clock):
         clock.tick(30)
 
 
-def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, human=False):
+def run_instance(net=None, draw=False, ticks_per_frame=1):
     # net: the network playing the game
     # draw: whether the game is "played" or just simulated
     # ticks_per_frame: how fast the game is played
     # print_score: whether the score is printed after the game is played
     # human: a param to let humans play
 
-    if human: 
-        draw = True
-        print_score = True
-
-    bird_pos = BIRD_START.copy()
-    bird_vel = 0
+    dino_pos = DINO_START.copy()
+    dino_vel = 0
     pipe_speed = PIPE_SPEED
     real_pipes = deque([])
     fake_pipes = deque([])
@@ -64,7 +60,8 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
     dist_traveled = 0
     game_over = False
     tick = 0
-    obstacle_spacing = random.randint(100, 500)
+    obstacle_spacing = random.randint(300, 800)
+    obstacle_height = random.randint(20, 60)
     obstacle_width = random.randint(20, 60)
 
     if draw:
@@ -73,70 +70,102 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
         clock = pg.time.Clock()
         screen = pg.display.set_mode((WORLD_X, WORLD_Y))
         screen.fill(BACKGROUND_COLOR)
-        pg.draw.circle(screen, BIRD_COLOR, BIRD_START, BIRD_SIZE)
+        pg.draw.circle(screen, DINO_COLOR, DINO_START, DINO_SIZE)
         if net is None:
             if pause(clock):
-                bird_vel = JUMP_FORCE
+                dino_vel = JUMP_FORCE
 
     while True:
-        if dist_traveled >= 100000:
+        if dist_traveled >= 1000000:
             game_over = True
         # --- Pipes ---
         # make new pipes
         if pipe_timer >= (obstacle_spacing + obstacle_width) // pipe_speed:
+            obstacle_spacing = random.randint(300, 800)
+            obstacle_height = random.randint(20, 60)
+            obstacle_width = random.randint(20, 60)
             x = WORLD_X + obstacle_width
-            gap = WORLD_Y - random.randint(10, 50)
-            pipe = [x, gap, obstacle_width]
+            pipe = [x, obstacle_width, obstacle_height]
             real_pipes.append(pipe)
             pipe_timer = 0
             pipe_speed += PIPE_SPEED_INC
-            obstacle_spacing = random.randint(200, 700)
-            obstacle_width = random.randint(20, 60)
         else:
             pipe_timer += 1
 
         # pipe movement
         dist_traveled += pipe_speed
-        real_pipes = deque([[pipe[0] - pipe_speed, pipe[1]] for pipe in real_pipes])
-        fake_pipes = deque([[pipe[0] - pipe_speed, pipe[1]] for pipe in fake_pipes])
+        real_pipes = deque(
+            [[pipe[0] - pipe_speed, pipe[1], pipe[2]] for pipe in real_pipes]
+        )
+        fake_pipes = deque(
+            [[pipe[0] - pipe_speed, pipe[1], pipe[2]] for pipe in fake_pipes]
+        )
 
         # bird movement
-        if bird_pos[1] >= BIRD_START[1]:
-            bird_pos[1] = BIRD_START[1]
-        elif bird_vel < TERMINAL_VEL:
-            bird_vel += GRAVITY
-        bird_pos[1] += bird_vel
+        if dino_pos[1] + DINO_SIZE + dino_vel >= WORLD_Y:
+            dino_pos[1] = WORLD_Y - DINO_SIZE
+            dino_vel = 0
+        elif dino_vel < TERMINAL_VEL:
+            dino_vel += GRAVITY
+        dino_pos[1] += dino_vel
 
         # first real pipe
-        first = real_pipes[0]
+        (d_x, d_y) = (dino_pos[0], dino_pos[1])
+        (p_x, p_height, p_width) = (
+            real_pipes[0][0],
+            real_pipes[0][1],
+            real_pipes[0][2],
+        )
 
         # if pipe can no longer touch bird, move to fake pipes
-        if first[0] + obstacle_width + BIRD_BB < bird_pos[0]:
+        if p_x + p_width + DINO_SIZE < d_x:
             fake_pipes.append(real_pipes.popleft())
+            (p_x, p_height, p_width) = (
+                real_pipes[0][0],
+                real_pipes[0][1],
+                real_pipes[0][2],
+            )
 
         # get rid of old offscreen pipes
         if fake_pipes:
-            first = fake_pipes[0]
-            if first[0] - pipe_speed <= -obstacle_width:
+            if fake_pipes[0][0] - pipe_speed <= -fake_pipes[0][1]:
                 fake_pipes.popleft()
 
-        (b_x, b_y) = (bird_pos[0], bird_pos[1])
-        (p_x, p_y) = (real_pipes[0][0], real_pipes[0][1])
-
         # network inputs as follows
-        # 1: distance to pipe
-        # 2: vertical velocity
-        # 3: vertical distance to top pipe
-        # 4: distance traveled
+        # 1: horizontal distance to 1st pipe
+        # 2: 1st pipe height
+        # 3: 1st pipe width
+        # 4: horizontal distance to 2nd pipe
+        # 5: 2nd pipe height
+        # 6: 2nd pipe width
+        # 7: distance traveled
         # network output: sigmoid function to jump
         if net is not None:
-            if net.activate([p_x - b_x, bird_vel, p_y - b_y, dist_traveled])[0] >= 0.5 and bird_pos[1] >= BIRD_START[1] - 3:
-                bird_vel = JUMP_FORCE
+            if d_y == (WORLD_Y - DINO_SIZE):
+                try:
+                    (p2_x, p2_height, p2_width) = (
+                        real_pipes[1][0],
+                        real_pipes[1][1],
+                        real_pipes[1][2],
+                    )
+                except IndexError:
+                    (p2_x, p2_height, p2_width) = (float("inf"), 0, 0)
+                inputs = [
+                    p_x - d_x,
+                    p_height,
+                    p_width,
+                    p2_x - d_x,
+                    p2_height,
+                    p2_width,
+                    dist_traveled,
+                ]
+                if net.activate(inputs)[0] >= 0.5:
+                    dino_vel = JUMP_FORCE
 
         # find collision
-        elif b_x + BIRD_BB >= p_x:
-            if b_x - BIRD_BB <= p_x + obstacle_width:
-                if (b_y + BIRD_BB >= p_y):
+        if d_x + DINO_SIZE >= p_x:
+            if d_x - DINO_SIZE <= p_x + p_width:
+                if d_y + DINO_SIZE >= WORLD_Y - p_height:
                     game_over = True
 
         if draw:
@@ -145,45 +174,25 @@ def run_instance(net=None, draw=False, ticks_per_frame=1, print_score=False, hum
                 if event.type == pg.QUIT:
                     pg.quit()
                     quit()
-                elif event.type == pg.KEYDOWN and human:
-                    if event.key == pg.K_SPACE and bird_pos[1] >= BIRD_START[1] - 5:
-                        bird_vel = JUMP_FORCE
-                    elif event.key == pg.K_p and bird_pos[1] >= BIRD_START[1] - 5:
-                        if pause(clock):
-                            bird_vel = JUMP_FORCE
+                elif event.type == pg.KEYDOWN:
+                    if event.key == pg.K_SPACE and d_y == (WORLD_Y - DINO_SIZE):
+                        dino_vel = JUMP_FORCE
+                    elif event.key == pg.K_p:
+                        if pause(clock) and d_y == (WORLD_Y - DINO_SIZE):
+                            dino_vel = JUMP_FORCE
             if tick % ticks_per_frame == 0:
                 screen.fill(BACKGROUND_COLOR)
-                pg.draw.circle(screen, BIRD_COLOR, bird_pos, BIRD_SIZE)
+                pg.draw.circle(screen, DINO_COLOR, dino_pos, DINO_SIZE)
                 for pipe in real_pipes + fake_pipes:
-                    bottom_pipe = pg.Rect(pipe[0], pipe[1], obstacle_width, 10000)
-                    pg.draw.rect(screen, PIPE_COLOR, bottom_pipe)
+                    pipe = pg.Rect(pipe[0], WORLD_Y - pipe[2], pipe[1], pipe[2])
+                    pg.draw.rect(screen, PIPE_COLOR, pipe)
                 pg.display.flip()
                 clock.tick(60)
 
-            if game_over:
-                if print_score:
-                    print("score:", dist_traveled / obstacle_width)
-                    pg.quit()
-                    quit()
-                pg.time.wait(250)
-                bird_pos = BIRD_START.copy()
-                bird_vel = 0
-                real_pipes = deque([])
-                fake_pipes = deque([])
-                pipe_timer = float("inf")
-                pipe_speed = 3
-                dist_traveled = 0
-                game_over = False
-                screen.fill(BACKGROUND_COLOR)
-                pg.draw.circle(screen, BIRD_COLOR, BIRD_START, BIRD_SIZE)
-                if pause(clock):
-                    bird_vel = JUMP_FORCE
+        if game_over:
+            pg.quit()
+            return dist_traveled
 
-        elif game_over:
-            if print_score:
-                print("score:", dist_traveled / obstacle_width)
-            return dist_traveled / obstacle_width
-        
 
-# if __name__ == "__main__":
-#     run_instance(human=True)
+if __name__ == "__main__":
+    run_instance(draw=True)
