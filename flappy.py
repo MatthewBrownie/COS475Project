@@ -4,8 +4,6 @@ from collections import deque
 
 import pygame as pg
 
-random.seed(0)
-
 # sim parameters
 WORLD_X = 600
 WORLD_Y = 800
